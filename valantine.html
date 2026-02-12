@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personality Analytics Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            font-family: 'Poppins', sans-serif; overflow: hidden;
+        }
+
+        .heart-shape {
+            position: relative; width: 450px; height: 400px;
+            background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(15px);
+            clip-path: path('M225,400 C225,400 0,260 0,120 C0,40 100,-40 225,80 C350,-40 450,40 450,120 C450,260 225,400 225,400 Z');
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 50px rgba(255, 77, 109, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            animation: beat 1.5s infinite ease-in-out; z-index: 10;
+        }
+
+        #photo {
+            position: absolute; width: 100%; height: 100%; object-fit: cover;
+            z-index: -1; display: none;
+        }
+
+        .content { text-align: center; width: 80%; color: #d63384; padding: 20px; z-index: 20; }
+
+        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        input { width: 70%; padding: 10px; margin: 10px 0; border-radius: 20px; border: 1px solid #ff9a9e; outline: none; }
+        .btn { background: #ff4d6d; color: white; padding: 12px 25px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .btn-no { background: #888; position: absolute; }
+
+        #video {
+            width: 180px; height: 180px; border-radius: 50%; border: 4px solid white;
+            object-fit: cover; margin-bottom: 10px; background: #333;
+        }
+
+        .romantic { font-family: 'Dancing Script', cursive; font-size: 28px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="https://www.chosic.com/wp-content/uploads/2021/07/Rain-and-Flowers-chosic.com_.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="heart-shape" id="mainHeart">
+        <img id="photo">
+        <div class="content">
+            <div id="step1">
+                <h3 style="margin: 0;">Enter Name</h3>
+                <input type="text" id="userName" placeholder="...">
+                <br>
+                <button class="btn" onclick="nextStep()">Start Test</button>
+            </div>
+
+            <div id="step2" class="hidden">
+                <h2 class="romantic">Sunno <span id="pName"></span>...</h2>
+                <p>Kya tum meri Valentine banogi? ❤️</p>
+                <div style="height: 60px; position: relative; margin-top: 15px;">
+                    <button class="btn" onclick="finalStep()">Haan! ❤️</button>
+                    <button class="btn btn-no" id="noBtn" onmouseover="moveNo()">Nahi</button>
+                </div>
+            </div>
+
+            <div id="step3" class="hidden">
+                <video id="video" autoplay playsinline muted></video>
+                <br>
+                <button class="btn" id="capBtn" onclick="takeSelfie()">Capture Love 📸</button>
+                <h2 id="finalTxt" class="romantic"></h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function nextStep() {
+            const name = document.getElementById('userName').value;
+            if(!name) return alert("Naam likho!");
+            document.getElementById('pName').innerText = name;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+        }
+
+        function moveNo() {
+            const btn = document.getElementById('noBtn');
+            btn.style.left = Math.random() * 150 + 'px';
+            btn.style.top = Math.random() * 100 + 'px';
+        }
+
+        async function finalStep() {
+            document.getElementById('bgMusic').play().catch(e => console.log("Music wait"));
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+
+            const video = document.getElementById('video');
+            
+            // Camera start karne ki koshish
+            const constraints = { video: { facingMode: "user" } };
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Camera error: ", err);
+                alert("Camera nahi khul raha, shayad permission blocked hai. Par main phir bhi tumse pyar karta hoon! ❤️");
+                showFinalMessageWithoutSelfie();
+            }
+        }
+
+        function takeSelfie() {
+            const video = document.getElementById('video');
+            const photo = document.getElementById('photo');
+            const canvas = document.createElement('canvas');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const data = canvas.toDataURL('image/png');
+            photo.src = data;
+            photo.style.display = 'block';
+            
+            video.classList.add('hidden');
+            document.getElementById('capBtn').classList.add('hidden');
+            document.getElementById('finalTxt').innerText = "I Love You Forever! ❤️";
+            document.getElementById('finalTxt').style.color = "white";
+
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function showFinalMessageWithoutSelfie() {
+            document.getElementById('video').style.display = 'none';
+            document.getElementById('capBtn').style.display = 'none';
+            document.getElementById('finalTxt').innerText = "I Love You Forever! ❤️";
+        }
+    </script>
+</body>
+</html>
